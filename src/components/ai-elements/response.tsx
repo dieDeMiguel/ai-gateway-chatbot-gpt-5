@@ -56,60 +56,59 @@ function parseIncompleteMarkdown(text: string): string {
     }
   }
 
-  // Handle incomplete single asterisk italic (*)
+  // Handle incomplete single asterisk italic formatting (*)
   const singleAsteriskPattern = /(\*)([^*]*?)$/;
   const singleAsteriskMatch = result.match(singleAsteriskPattern);
   if (singleAsteriskMatch) {
-    // Count single asterisks that aren't part of **
-    const singleAsterisks = result.split('').reduce((acc, char, index) => {
-      if (char === '*') {
-        // Check if it's part of a ** pair
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '*' && nextChar !== '*') {
-          return acc + 1;
+    // Count single asterisks that are NOT part of double asterisks
+    let singleAsteriskCount = 0;
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] === '*') {
+        // Check if this asterisk is part of a double asterisk
+        const isDoubleStart = result.substring(i, i + 2) === '**';
+        const isDoubleEnd = i > 0 && result.substring(i - 1, i + 1) === '**';
+        
+        if (!isDoubleStart && !isDoubleEnd) {
+          singleAsteriskCount++;
         }
       }
-      return acc;
-    }, 0);
-
-    // If odd number of single *, we have an incomplete italic - complete it
-    if (singleAsterisks % 2 === 1) {
+    }
+    
+    // If odd number of single asterisks, we have an incomplete italic - complete it
+    if (singleAsteriskCount % 2 === 1) {
       result = `${result}*`;
     }
   }
 
-  // Handle incomplete single underscore italic (_)
+  // Handle incomplete single underscore italic formatting (_)
   const singleUnderscorePattern = /(_)([^_]*?)$/;
   const singleUnderscoreMatch = result.match(singleUnderscorePattern);
   if (singleUnderscoreMatch) {
-    // Count single underscores that aren't part of __
-    const singleUnderscores = result.split('').reduce((acc, char, index) => {
-      if (char === '_') {
-        // Check if it's part of a __ pair
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '_' && nextChar !== '_') {
-          return acc + 1;
+    // Count single underscores that are NOT part of double underscores
+    let singleUnderscoreCount = 0;
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] === '_') {
+        // Check if this underscore is part of a double underscore
+        const isDoubleStart = result.substring(i, i + 2) === '__';
+        const isDoubleEnd = i > 0 && result.substring(i - 1, i + 1) === '__';
+        
+        if (!isDoubleStart && !isDoubleEnd) {
+          singleUnderscoreCount++;
         }
       }
-      return acc;
-    }, 0);
-
-    // If odd number of single _, we have an incomplete italic - complete it
-    if (singleUnderscores % 2 === 1) {
+    }
+    
+    // If odd number of single underscores, we have an incomplete italic - complete it
+    if (singleUnderscoreCount % 2 === 1) {
       result = `${result}_`;
     }
   }
 
-  // Handle incomplete inline code blocks (`) - but avoid code blocks (```)
+  // Handle incomplete inline code formatting (`)
   const inlineCodePattern = /(`)([^`]*?)$/;
   const inlineCodeMatch = result.match(inlineCodePattern);
   if (inlineCodeMatch) {
     // Check if we're dealing with a code block (triple backticks)
-    const hasCodeBlockStart = result.includes('```');
-    const codeBlockPattern = /```[\s\S]*?```/g;
-    const completeCodeBlocks = (result.match(codeBlockPattern) || []).length;
     const allTripleBackticks = (result.match(/```/g) || []).length;
 
     // If we have an odd number of ``` sequences, we're inside an incomplete code block
@@ -174,27 +173,27 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const components: Options['components'] = {
-  ol: ({ node, children, className, ...props }) => (
+  ol: ({ children, className, ...props }) => (
     <ol className={cn('ml-4 list-outside list-decimal', className)} {...props}>
       {children}
     </ol>
   ),
-  li: ({ node, children, className, ...props }) => (
+  li: ({ children, className, ...props }) => (
     <li className={cn('py-1', className)} {...props}>
       {children}
     </li>
   ),
-  ul: ({ node, children, className, ...props }) => (
+  ul: ({ children, className, ...props }) => (
     <ul className={cn('ml-4 list-outside list-decimal', className)} {...props}>
       {children}
     </ul>
   ),
-  strong: ({ node, children, className, ...props }) => (
+  strong: ({ children, className, ...props }) => (
     <span className={cn('font-semibold', className)} {...props}>
       {children}
     </span>
   ),
-  a: ({ node, children, className, ...props }) => (
+  a: ({ children, className, ...props }) => (
     <a
       className={cn('font-medium text-primary underline', className)}
       rel="noreferrer"
@@ -204,7 +203,7 @@ const components: Options['components'] = {
       {children}
     </a>
   ),
-  h1: ({ node, children, className, ...props }) => (
+  h1: ({ children, className, ...props }) => (
     <h1
       className={cn('mt-6 mb-2 font-semibold text-3xl', className)}
       {...props}
@@ -212,7 +211,7 @@ const components: Options['components'] = {
       {children}
     </h1>
   ),
-  h2: ({ node, children, className, ...props }) => (
+  h2: ({ children, className, ...props }) => (
     <h2
       className={cn('mt-6 mb-2 font-semibold text-2xl', className)}
       {...props}
@@ -220,17 +219,17 @@ const components: Options['components'] = {
       {children}
     </h2>
   ),
-  h3: ({ node, children, className, ...props }) => (
+  h3: ({ children, className, ...props }) => (
     <h3 className={cn('mt-6 mb-2 font-semibold text-xl', className)} {...props}>
       {children}
     </h3>
   ),
-  h4: ({ node, children, className, ...props }) => (
+  h4: ({ children, className, ...props }) => (
     <h4 className={cn('mt-6 mb-2 font-semibold text-lg', className)} {...props}>
       {children}
     </h4>
   ),
-  h5: ({ node, children, className, ...props }) => (
+  h5: ({ children, className, ...props }) => (
     <h5
       className={cn('mt-6 mb-2 font-semibold text-base', className)}
       {...props}
@@ -238,16 +237,22 @@ const components: Options['components'] = {
       {children}
     </h5>
   ),
-  h6: ({ node, children, className, ...props }) => (
-    <h6 className={cn('mt-6 mb-2 font-semibold text-sm', className)} {...props}>
+  h6: ({ children, className, ...props }) => (
+    <h6
+      className={cn('mt-6 mb-2 font-semibold text-sm', className)}
+      {...props}
+    >
       {children}
     </h6>
   ),
-  pre: ({ node, className, children }) => {
+  pre: ({ className, children }) => {
     let language = 'javascript';
 
-    if (typeof node?.properties?.className === 'string') {
-      language = node.properties.className.replace('language-', '');
+    if (typeof children === 'object' && children !== null && 'props' in children) {
+      const childProps = children.props as { className?: string };
+      if (childProps?.className) {
+        language = childProps.className.replace('language-', '');
+      }
     }
 
     const childrenIsCode =
@@ -275,7 +280,7 @@ const components: Options['components'] = {
   },
 };
 
-export const Response = memo(
+const ResponseComponent = memo(
   ({
     className,
     options,
@@ -316,3 +321,7 @@ export const Response = memo(
   },
   (prevProps, nextProps) => prevProps.children === nextProps.children,
 );
+
+ResponseComponent.displayName = 'Response';
+
+export const Response = ResponseComponent;

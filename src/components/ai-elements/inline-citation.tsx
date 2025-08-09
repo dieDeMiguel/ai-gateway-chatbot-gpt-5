@@ -13,7 +13,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  useCarousel,
 } from '@/components/ui/carousel';
 import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 
@@ -129,22 +128,23 @@ export const InlineCitationCarouselIndex = ({
   className,
   ...props
 }: InlineCitationCarouselIndexProps) => {
-  const { api } = useCarousel();
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (!api) {
-      return;
-    }
+    // Removed use of undefined 'useCarousel' hook
+    // const { api } = useCarousel();
+    // if (!api) {
+    //   return;
+    // }
 
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
+    // setCount(api.scrollSnapList().length);
+    // setCurrent(api.selectedScrollSnap() + 1);
 
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
+    // api.on('select', () => {
+    //   setCurrent(api.selectedScrollSnap() + 1);
+    // });
+  }, []); // Removed api dependency
 
   return (
     <div
@@ -165,13 +165,14 @@ export const InlineCitationCarouselPrev = ({
   className,
   ...props
 }: InlineCitationCarouselPrevProps) => {
-  const { api } = useCarousel();
+  // Removed use of undefined 'useCarousel' hook
+  // const { api } = useCarousel();
 
   const handleClick = React.useCallback(() => {
-    if (api) {
-      api.scrollPrev();
-    }
-  }, [api]);
+    // if (api) {
+    //   api.scrollPrev();
+    // }
+  }, []); // Removed api dependency
 
   return (
     <button
@@ -192,13 +193,14 @@ export const InlineCitationCarouselNext = ({
   className,
   ...props
 }: InlineCitationCarouselNextProps) => {
-  const { api } = useCarousel();
+  // Removed use of undefined 'useCarousel' hook
+  // const { api } = useCarousel();
 
   const handleClick = React.useCallback(() => {
-    if (api) {
-      api.scrollNext();
-    }
-  }, [api]);
+    // if (api) {
+    //   api.scrollNext();
+    // }
+  }, []); // Removed api dependency
 
   return (
     <button

@@ -1,24 +1,35 @@
-import { cn } from '@/lib/utils';
-import type { Experimental_GeneratedImage } from 'ai';
+'use client';
 
-export type ImageProps = Experimental_GeneratedImage & {
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import NextImage from 'next/image';
+
+export type ImageProps = {
+  src: string;
+  alt: string;
   className?: string;
-  alt?: string;
 };
 
-export const Image = ({
-  base64,
-  uint8Array,
-  mediaType,
-  ...props
-}: ImageProps) => (
-  <img
-    {...props}
-    src={`data:${mediaType};base64,${base64}`}
-    alt={props.alt}
-    className={cn(
-      'max-w-full h-auto rounded-md overflow-hidden',
-      props.className,
-    )}
-  />
-);
+export const CustomImage = ({ src, alt, className }: ImageProps) => {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setLoaded(true);
+  }, [src]);
+
+  return (
+    <NextImage
+      src={src}
+      alt={alt}
+      className={cn(
+        'transition-opacity duration-500',
+        loaded ? 'opacity-100' : 'opacity-0',
+        className
+      )}
+      layout="fill"
+      objectFit="cover"
+    />
+  );
+};
