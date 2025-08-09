@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const result = streamText({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5',
     messages: convertToModelMessages(messages),
   });
 
