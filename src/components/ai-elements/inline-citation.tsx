@@ -128,8 +128,9 @@ export const InlineCitationCarouselIndex = ({
   className,
   ...props
 }: InlineCitationCarouselIndexProps) => {
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
+  // Removed unused state variables that were causing ESLint warnings
+  // const [current, setCurrent] = React.useState(0);
+  // const [count, setCount] = React.useState(0);
 
   React.useEffect(() => {
     // Removed use of undefined 'useCarousel' hook
@@ -144,17 +145,17 @@ export const InlineCitationCarouselIndex = ({
     // api.on('select', () => {
     //   setCurrent(api.selectedScrollSnap() + 1);
     // });
-  }, []); // Removed api dependency
+  }, []);
 
   return (
     <div
       className={cn(
-        'flex items-center flex-1 justify-end px-3 py-1 text-xs text-muted-foreground',
+        'flex items-center justify-center gap-1 text-xs text-muted-foreground',
         className,
       )}
       {...props}
     >
-      {children ?? `${current}/${count}`}
+      {children}
     </div>
   );
 };
