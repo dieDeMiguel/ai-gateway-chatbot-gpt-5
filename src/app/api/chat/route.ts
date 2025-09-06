@@ -135,9 +135,9 @@ async function queryRAGSystem(embedding: number[], query: string): Promise<RAGRe
 
     const ragResults: RAGResponse = await response.json();
 
-    // Log provenance for admin console (PRD requirement)
+    // Simple logging for debugging
     if (ragResults.documents && ragResults.documents.length > 0) {
-      await logProvenance(query, ragResults.documents);
+      console.log('📋 Sources found:', ragResults.documents.map(d => d.url));
     }
 
     console.log('✅ RAG query completed:', {
@@ -202,65 +202,4 @@ Last indexed: ${doc.fetched_at}`;
   });
 
   return contextParts.join('\n\n---\n\n');
-}
-
-// Provenance Logging (PRD requirement)
-async function logProvenance(query: string, sources: RAGDocument[]): Promise<void> {
-  try {
-    for (const source of sources) {
-      const provenanceTuple = {
-        url: source.url,
-        title: source.title,
-        snippet_hash: hashContent(source.content),
-        fetched_at: source.fetched_at,
-        query: query,
-        timestamp: new Date().toISOString(),
-        score: source.score
-      };
-
-      // TODO: Store in your database for admin console
-      console.log('📋 Provenance logged:', {
-        url: provenanceTuple.url,
-        title: provenanceTuple.title,
-        query: query.substring(0, 50) + '...'
-      });
-
-      // Example: await database.store('provenance', provenanceTuple);
-    }
-  } catch (error) {
-    console.error('❌ Provenance logging failed:', error);
-    // Don't fail the request if logging fails
-  }
-}
-
-// Simple hash function for content
-function hashContent(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    const char = content.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return hash.toString(16);
-}
-
-// Citation Formatter (for future widget use)
-function formatCitations(sources: RAGDocument[], displayMode: 'FULL_LINKS' | 'COMPACT_LINE' | 'HIDDEN' = 'COMPACT_LINE'): string {
-  if (!sources || sources.length === 0) return '';
-
-  switch (displayMode) {
-    case 'FULL_LINKS':
-      return sources.map(s => `[${s.title}](${s.url})`).join(', ');
-    
-    case 'COMPACT_LINE':
-      const latestDate = Math.max(...sources.map(s => new Date(s.fetched_at).getTime()));
-      return `Verified from fifa.com • Last indexed ${new Date(latestDate).toLocaleDateString()}`;
-    
-    case 'HIDDEN':
-      const latestDateHidden = Math.max(...sources.map(s => new Date(s.fetched_at).getTime()));
-      return `Verified from fifa.com • Last indexed ${new Date(latestDateHidden).toLocaleDateString()}`;
-    
-    default:
-      return formatCitations(sources, 'COMPACT_LINE');
-  }
 }
