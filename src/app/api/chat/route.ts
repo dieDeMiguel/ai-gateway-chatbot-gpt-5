@@ -1,4 +1,4 @@
-import { streamText, UIMessage, convertToModelMessages, embed } from 'ai';
+import { streamText, UIMessage, convertToModelMessages } from 'ai';
 
 // Allow streaming responses up to 300 seconds (5 minutes) to match Vercel project settings
 export const maxDuration = 300;
@@ -23,27 +23,16 @@ export async function POST(req: Request) {
 
     console.log('✅ Extracted query:', userQuery);
 
-    // PROMPT EMBEDDING: Generate embedding for the user query
+    // RAG INTEGRATION: Query production RAG system
     if (userQuery.trim()) {
       try {
-        console.log('🔍 Generating embedding for query:', userQuery);
+        console.log('🔍 Querying production RAG for:', userQuery);
         
-        // Use AI Gateway for embeddings - no API key needed!
-        const { embedding: queryEmbedding } = await embed({
-          model: 'openai/text-embedding-3-small', // Using AI Gateway format
-          value: userQuery
-        });
-
-        console.log('✅ Embedding generated:', {
-          dimensions: queryEmbedding.length,
-          firstValues: queryEmbedding.slice(0, 5)
-        });
-
-        // Query RAG system with embedding
-        const ragResponse = await queryRAGSystem(queryEmbedding, userQuery);
+        // Query RAG system (no embedding generation needed - handled by RAG API)
+        const ragResponse = await queryRAGSystem(userQuery);
         
         if (ragResponse) {
-          console.log('📚 RAG context retrieved from FIFA.com');
+          console.log('📚 RAG context retrieved from FIFA.com production');
         }
 
         // Build system prompt based on RAG results
@@ -58,9 +47,9 @@ export async function POST(req: Request) {
 
         return result.toUIMessageStreamResponse();
 
-      } catch (embeddingError) {
-        console.error('❌ Embedding generation failed:', embeddingError);
-        // Continue with normal chat even if embedding fails
+      } catch (ragError) {
+        console.error('❌ RAG query failed:', ragError);
+        // Continue with normal chat even if RAG fails
       }
     }
 
@@ -96,15 +85,15 @@ interface RAGResponse {
   query_id?: string;
 }
 
-// RAG System Query Function - Using RAG API Intermedio
-async function queryRAGSystem(embedding: number[], query: string): Promise<RAGResponse | null> {
+// RAG System Query Function - Using Production RAG API
+async function queryRAGSystem(query: string): Promise<RAGResponse | null> {
   try {
-    console.log('🔍 Querying RAG API:', {
+    console.log('🔍 Querying production RAG API:', {
       query: query.substring(0, 100) + '...'
     });
 
-    // Connect to RAG API intermedio (fixed by RAG team)
-    const RAG_API_URL = 'http://localhost:8000';
+    // Connect to production RAG API on Railway
+    const RAG_API_URL = process.env.RAG_REMOTE_URL || 'https://hackathonservice-production.up.railway.app';
 
     const ragRequest = {
       query: query,
@@ -145,8 +134,8 @@ async function queryRAGSystem(embedding: number[], query: string): Promise<RAGRe
 
       return {
         url: convertToRealFIFAUrl(result.id, result.text || ''),
-        title: `FIFA Document ${index + 1}`,
-        content: result.text || result.metadata?.text || 'No content available',
+        title: result.metadata?.title || `FIFA Document ${index + 1}`,
+        content: result.text || 'No content available',
         fetched_at: new Date().toISOString(),
         score: result.score
       };
