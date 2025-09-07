@@ -3,6 +3,24 @@ import { streamText, UIMessage, convertToModelMessages } from 'ai';
 // Allow streaming responses up to 300 seconds (5 minutes) to match Vercel project settings
 export const maxDuration = 300;
 
+// Type definitions for message parts
+interface MessagePart {
+  type: string;
+  text: string;
+}
+
+// Type definitions for RAG API response
+interface RAGResult {
+  id: string;
+  text: string;
+  score: number;
+  metadata?: {
+    title?: string;
+    text?: string;
+    [key: string]: unknown;
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const { messages }: { messages: UIMessage[] } = await req.json();
@@ -16,8 +34,8 @@ export async function POST(req: Request) {
     // Extract text content from the message (UIMessage uses 'parts' format)
     if (lastUserMessage?.parts) {
       const textParts = lastUserMessage.parts
-        .filter((part: any) => part.type === 'text')
-        .map((part: any) => part.text);
+        .filter((part: MessagePart) => part.type === 'text')
+        .map((part: MessagePart) => part.text);
       userQuery = textParts.join(' ');
     }
 
@@ -124,7 +142,7 @@ async function queryRAGSystem(query: string): Promise<RAGResponse | null> {
     });
 
     // Transform RAG API response to our RAGResponse format
-    const documents: RAGDocument[] = ragResults.results?.map((result: any, index: number) => {
+    const documents: RAGDocument[] = ragResults.results?.map((result: RAGResult, index: number) => {
       console.log('📄 Document found:', {
         id: result.id,
         score: result.score,
