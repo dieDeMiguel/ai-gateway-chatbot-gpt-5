@@ -3,9 +3,9 @@ import { streamText, UIMessage, convertToModelMessages } from 'ai';
 // Allow streaming responses up to 300 seconds (5 minutes) to match Vercel project settings
 export const maxDuration = 300;
 
-// Type definitions for message parts
-interface MessagePart {
-  type: string;
+// Type definitions for text message parts
+interface TextMessagePart {
+  type: 'text';
   text: string;
 }
 
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     // Extract text content from the message (UIMessage uses 'parts' format)
     if (lastUserMessage?.parts) {
       const textParts = lastUserMessage.parts
-        .filter((part: MessagePart) => part.type === 'text')
-        .map((part: MessagePart) => part.text);
+        .filter((part): part is TextMessagePart => part.type === 'text')
+        .map((part) => part.text);
       userQuery = textParts.join(' ');
     }
 
